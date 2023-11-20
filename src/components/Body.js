@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
-import ResturantCards from "./ResturantCards";
-import Loader from "react-js-loader";
-import Shimmer from "./Shimmer";
+import { useContext, useEffect, useState } from "react";
+import { UserContext } from "../utils/UserContext";
+import ResturantCards, { withPromotioCard } from "./ResturantCards";
+import { Link } from "react-router-dom";
+import useOnlineStatus from "../utils/useOnlineStatus";
+
+// import Shimmer from "./Shimmer.js";
 
 
 
@@ -9,6 +12,9 @@ const Body =()=>{
     
     const [listOfRestaurants, setListOfRestaurants]=useState([])
     const [searchText, setSearchText] =useState("")
+    const onlineStatus = useOnlineStatus()
+    const PromotedRestaurantard= withPromotioCard(ResturantCards)
+    const {loggedInUser,setUserName} = useContext(UserContext)
 const [initialData, setInitialData]=useState([])
     useEffect(()=>{
         console.log('UseEffect called');
@@ -32,19 +38,21 @@ const fetchData =async ()=>{
 
 
     }
- 
-    return listOfRestaurants.length=== 0 ?  <Shimmer/> :(
+ if(!onlineStatus) return <h1>System not co-operating, Please check your internet connection.</h1>
+    return listOfRestaurants.length=== 0 ?  <div>test</div> :(
         <div className="body">
-             <div className="filter_sectiom">
-              <div className="Search-box">
-                <input type="text" className="input-box" value={searchText} onChange={(e)=>{setSearchText(e.target.value)}}/>
-                <button onClick={()=>{
+             <div className="filter_sectiom flex items-center">
+              <div className="Search-box p-4 m-4">
+                <input type="text" className="border border-solid border-black mx-4" value={searchText} onChange={(e)=>{setSearchText(e.target.value)}}/>
+                <button className="px-4 bg-green-100 rounded-sm" onClick={()=>{
                   console.log({initialData},"##")
               const filteredList = initialData.filter(res=>res.name.toLowerCase().includes(searchText.toLowerCase()))
               setListOfRestaurants(filteredList)
               }}>Search</button>
               </div>
-             <button className="filter-btn"
+            
+              <div>
+              <button className="filter-btn p-4 bg-gray-100 rounded-md"
                 onClick={()=>{
                   filteredList = listOfRestaurants.filter(resturant=>{
                       return resturant.avgRating>4;
@@ -52,14 +60,25 @@ const fetchData =async ()=>{
                   setListOfRestaurants(filteredList);
                 }}
             >Top rated resturants</button>
+              </div>
+              <div className="p-4 flex items-center">
+               <label>Username</label>
+               <input type="text" className="p-2 m-2 border border-black" value={loggedInUser} onChange={(e)=>setUserName(e.target.value)}/>
+              </div>
              </div>
-             <div className='res-container'>
+             <div className='flex flex-wrap'>
                
                  {
-               listOfRestaurants.map((resturant)=><ResturantCards 
+               listOfRestaurants.map((resturant)=>
+               <Link to={"/restaurant/"+resturant.id}>
+               
+                {!!resturant.promoted?<PromotedRestaurantard  key={resturant.id}
+               resData = {resturant}/>:
+               <ResturantCards 
                key={resturant.id}
                resData = {resturant}
-               />)
+               />}
+               </Link>)
                }
              </div>
         </div>
