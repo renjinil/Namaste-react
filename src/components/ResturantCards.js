@@ -6,6 +6,7 @@ const styleCard = {
 
 const ResturantCards = (props)=>{
     const {resData} = props;
+
     const {
            name,
            cuisines,
